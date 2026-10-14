@@ -4,7 +4,7 @@ class Fds < Formula
   url "https://github.com/firemodels/fds/archive/refs/tags/FDS-6.11.1.tar.gz"
   sha256 "f0a3493ea5f77b18ee5aae065ffb5c3677ae5cc0e1479b5aac22872b472dc417"
   license :public_domain
-  revision 1
+  revision 2
 
   depends_on "cmake" => :build
   depends_on arch: :arm64
@@ -94,10 +94,11 @@ class Fds < Formula
       fi
       cd -- "$(dirname -- "$input")"
       input="./$(basename -- "$input")"
-      export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
       if [ "$ranks" = 1 ]; then
         exec /usr/bin/caffeinate -i -s "#{opt_libexec}/fds" "$input"
       fi
+      # Multi-rank only: default thread counts across ranks can deadlock libgomp.
+      export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
       exec /usr/bin/caffeinate -i -s "#{mpi}/mpiexec" \\
         --mca btl tcp,self --mca btl_tcp_if_include lo0 \\
         --mca btl_tcp_keepalive_time 60 --mca btl_tcp_keepalive_intvl 10 \\
@@ -116,7 +117,8 @@ class Fds < Formula
     <<~EOS
       This is an unofficial Apple Silicon package of NIST's FDS #{version} release.
       Run: FDSG input.fds -n 4
-      FDSG uses local-machine MPI workarounds and defaults OMP_NUM_THREADS to 1.
+      With -n above 1, FDSG uses local-machine MPI workarounds and defaults
+      OMP_NUM_THREADS to 1 per process. Single-process runs use OpenMP's default.
       For custom or multi-host runs, call mpiexec with the raw executable:
         #{opt_libexec}/fds
       Smokeview is not included.
