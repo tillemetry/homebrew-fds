@@ -17,6 +17,18 @@ The Xcode Command Line Tools (`xcode-select --install`) and
 brew install tillemetry/fds/fds
 ```
 
+Or add the tap first, after which the short name works for install, upgrade
+and uninstall:
+
+```sh
+brew tap tillemetry/fds
+brew install fds
+```
+
+No `sudo` needed: Homebrew installs into folders you own and refuses to run as
+root. Only the one-time setup asks for an administrator password: installing
+the Xcode Command Line Tools and installing Homebrew itself.
+
 Homebrew installs GCC, Open MPI and CMake as dependencies, then compiles FDS
 and its solver libraries (a few minutes). No prebuilt bottle is provided yet.
 
