@@ -1,9 +1,8 @@
 class Fds < Formula
-  desc "Fire Dynamics Simulator for Apple Silicon"
+  desc "Fire Dynamics Simulator by NIST (unofficial Apple Silicon build)"
   homepage "https://pages.nist.gov/fds-smv/"
-  url "https://github.com/firemodels/fds/archive/d12d366cd8e7a20fd97cc33d2f892934ee9a1e8b.tar.gz"
-  version "6.9.1-20260114"
-  sha256 "53fdd464f360c1768bbea6e029153d623b3b72d50ca3b96d25effa7a7763ed93"
+  url "https://github.com/firemodels/fds/archive/refs/tags/FDS-6.11.1.tar.gz"
+  sha256 "f0a3493ea5f77b18ee5aae065ffb5c3677ae5cc0e1479b5aac22872b472dc417"
   license :public_domain
 
   depends_on "cmake" => :build
@@ -29,7 +28,7 @@ class Fds < Formula
     hypre = buildpath/"hypre-install"
     sundials = buildpath/"sundials-install"
 
-    # Match this fork's tested static-library configuration, without build-time downloads.
+    # Static HYPRE and SUNDIALS at the versions NIST pins for this release; no build-time downloads.
     resource("hypre").stage do
       (pkgshare/"licenses/hypre/blas").mkpath
       (pkgshare/"licenses/hypre/lapack").mkpath
@@ -60,10 +59,10 @@ class Fds < Formula
     end
 
     cd "Build/ompi_gnu_osx" do
-      # The upstream GNU macOS target has the same flags as the fork's ARM64 target.
+      # NIST's own GNU/Open MPI macOS target. The tarball has no .git, so pass the revision.
       system "make", "-f", "../makefile", "ompi_gnu_osx", "VPATH=../../Source",
              "COMP_FC=#{mpi}/mpifort", "HYPRE_HOME=#{hypre}", "SUNDIALS_HOME=#{sundials}",
-             "GIT_HASH=d12d366", "GIT_BRANCH=homebrew", "GIT_DATE=2026-01-14", "GIT_STAT=",
+             "GIT_HASH=FDS-#{version}", "GIT_BRANCH=homebrew", "GIT_DATE=2026-07-09", "GIT_STAT=",
              "LFLAGSMKL_CUSTOM=", "FFLAGSMKL="
       bin.install "fds_ompi_gnu_osx" => "fds"
     end
@@ -106,14 +105,14 @@ class Fds < Formula
     pkgshare.install "LICENSE.md"
     (pkgshare/"PACKAGING.txt").write <<~EOS
       Fire Dynamics Simulator is developed by the National Institute of Standards and Technology.
-      Packaging changes, 2026-09-23: Apple Silicon Homebrew build and local MPI launcher.
-      Source: firemodels/fds at d12d366cd8e7a20fd97cc33d2f892934ee9a1e8b (development snapshot).
+      Packaging changes: Apple Silicon Homebrew build and local MPI launcher (FDSG).
+      Source: firemodels/fds release FDS-#{version}.
     EOS
   end
 
   def caveats
     <<~EOS
-      This is an unofficial Apple Silicon package of an FDS development snapshot.
+      This is an unofficial Apple Silicon package of NIST's FDS #{version} release.
       Run: FDSG input.fds -n 4
       FDSG uses local-machine MPI workarounds and defaults OMP_NUM_THREADS to 1.
       Use fds or mpiexec directly for custom or multi-host execution.
