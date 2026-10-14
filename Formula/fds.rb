@@ -4,6 +4,7 @@ class Fds < Formula
   url "https://github.com/firemodels/fds/archive/refs/tags/FDS-6.11.1.tar.gz"
   sha256 "f0a3493ea5f77b18ee5aae065ffb5c3677ae5cc0e1479b5aac22872b472dc417"
   license :public_domain
+  revision 1
 
   depends_on "cmake" => :build
   depends_on arch: :arm64
@@ -64,7 +65,8 @@ class Fds < Formula
              "COMP_FC=#{mpi}/mpifort", "HYPRE_HOME=#{hypre}", "SUNDIALS_HOME=#{sundials}",
              "GIT_HASH=FDS-#{version}", "GIT_BRANCH=homebrew", "GIT_DATE=2026-07-09", "GIT_STAT=",
              "LFLAGSMKL_CUSTOM=", "FFLAGSMKL="
-      bin.install "fds_ompi_gnu_osx" => "fds"
+      # Only FDSG goes on PATH; the raw executable stays in libexec.
+      libexec.install "fds_ompi_gnu_osx" => "fds"
     end
 
     # Local-machine MPI settings from Build/ompi_gnu_osx_arm64/FDSG.
@@ -94,12 +96,12 @@ class Fds < Formula
       input="./$(basename -- "$input")"
       export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
       if [ "$ranks" = 1 ]; then
-        exec /usr/bin/caffeinate -i -s "#{opt_bin}/fds" "$input"
+        exec /usr/bin/caffeinate -i -s "#{opt_libexec}/fds" "$input"
       fi
       exec /usr/bin/caffeinate -i -s "#{mpi}/mpiexec" \\
         --mca btl tcp,self --mca btl_tcp_if_include lo0 \\
         --mca btl_tcp_keepalive_time 60 --mca btl_tcp_keepalive_intvl 10 \\
-        -x OMP_NUM_THREADS -n "$ranks" "#{opt_bin}/fds" "$input"
+        -x OMP_NUM_THREADS -n "$ranks" "#{opt_libexec}/fds" "$input"
     SH
     (bin/"FDSG").chmod 0755
     pkgshare.install "LICENSE.md"
@@ -115,13 +117,15 @@ class Fds < Formula
       This is an unofficial Apple Silicon package of NIST's FDS #{version} release.
       Run: FDSG input.fds -n 4
       FDSG uses local-machine MPI workarounds and defaults OMP_NUM_THREADS to 1.
-      Use fds or mpiexec directly for custom or multi-host execution.
+      For custom or multi-host runs, call mpiexec with the raw executable:
+        #{opt_libexec}/fds
       Smokeview is not included.
     EOS
   end
 
   test do
     ENV["OMP_NUM_THREADS"] = "1"
+    assert_equal [bin/"FDSG"], bin.children
     (testpath/"smoke.fds").write <<~EOS
       &HEAD CHID='smoke', TITLE='Homebrew smoke test' /
       &MESH IJK=4,4,4, XB=0,1,0,1,0,1 /

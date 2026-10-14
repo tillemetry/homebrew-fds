@@ -40,18 +40,19 @@ FDSG input.fds -n 4                     # 4 MPI processes, usually one per mesh
 OMP_NUM_THREADS=2 FDSG input.fds -n 4   # override the one-thread-per-process default
 ```
 
-`fds` is the raw executable. `FDSG` runs in the input file's directory, keeps
-the Mac awake during the run, and passes on the simulation's exit status. For
-runs with more than one process, it works around two hangs seen on long runs on
-Apple Silicon:
+`FDSG` is the only command added to your `PATH`. It runs in the input file's
+directory, keeps the Mac awake during the run, and passes on the simulation's
+exit status. For runs with more than one process, it works around two hangs
+seen on long runs on Apple Silicon:
 
 - MPI traffic goes over TCP on the loopback interface (`lo0`), because Open
   MPI's shared-memory transport can hang mid-run.
 - Each process runs one OpenMP thread by default, because many processes each
   starting the default thread count can deadlock in the radiation solver.
 
-These settings are for a single Mac; use `mpiexec` and `fds` directly for
-multiple hosts. Smokeview is separate.
+These settings are for a single Mac. For multiple hosts, call `mpiexec` with
+the raw executable, `$(brew --prefix fds)/libexec/fds`, directly. Smokeview is
+separate.
 
 ## Maintenance and checks
 
