@@ -4,7 +4,7 @@ class Fds < Formula
   url "https://github.com/firemodels/fds/archive/refs/tags/FDS-6.11.1.tar.gz"
   sha256 "f0a3493ea5f77b18ee5aae065ffb5c3677ae5cc0e1479b5aac22872b472dc417"
   license :public_domain
-  revision 2
+  revision 3
 
   depends_on "cmake" => :build
   depends_on arch: :arm64
@@ -38,7 +38,9 @@ class Fds < Formula
       cp "src/lapack/COPYING", pkgshare/"licenses/hypre/lapack"
       cd "src" do
         system "./configure", "--prefix=#{hypre}", "CC=#{mpi}/mpicc", "CXX=#{mpi}/mpicxx",
-               "--disable-fortran", "--without-MPI", "--enable-shared=no", "--with-timing",
+               # MPI-enabled: UGLMAT/GLMAT pass HYPRE a multi-process communicator; a
+               # --without-MPI (HYPRE_SEQUENTIAL) build segfaults there at -n >= 2.
+               "--disable-fortran", "--enable-shared=no", "--with-timing",
                "--without-superlu", "--without-dsuperlu"
         system "make"
         system "make", "install"
@@ -144,6 +146,17 @@ class Fds < Formula
         assert_path_exists Pathname.pwd/"smoke_hrr.csv"
       end
     end
+    # The global HYPRE solve at 2 processes; FFT above never calls HYPRE.
+    (testpath/"uglmat.fds").write <<~EOS
+      &HEAD CHID='uglmat', TITLE='Homebrew HYPRE MPI test' /
+      &MESH IJK=4,4,4, XB=0,1,0,1,0,1 /
+      &MESH IJK=4,4,4, XB=1,2,0,1,0,1 /
+      &PRES SOLVER='UGLMAT HYPRE' /
+      &TIME T_END=0.02 /
+      &TAIL /
+    EOS
+    system bin/"FDSG", "uglmat.fds", "-n", "2"
+    assert_match "STOP: FDS completed successfully", (testpath/"uglmat.out").read
     assert_match "positive integer", shell_output("#{bin}/FDSG -n 0 2>&1", 2)
     assert_match "positive integer", shell_output("#{bin}/FDSG -n 2>&1", 2)
   end
