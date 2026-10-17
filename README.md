@@ -11,7 +11,9 @@ SHA-256 checksums.
 ## Install
 
 The Xcode Command Line Tools (`xcode-select --install`) and
-[Homebrew](https://brew.sh) must already be installed.
+[Homebrew](https://brew.sh) must already be installed. The tap repository is private, so GitHub access
+must work first: run `gh auth login` (or set up an SSH key or HTTPS credential
+helper) on the machine before tapping.
 
 ```sh
 brew install tillemetry/fds/fds
@@ -64,8 +66,12 @@ brew linkage --test tillemetry/fds/fds
 ```
 
 The formula test runs a tiny two-mesh case with one and two MPI processes and
-checks completion and output files. This checks packaging, not scientific
-validation.
+checks completion and output files, then runs the same mesh with
+`SOLVER='UGLMAT HYPRE'` at two processes to confirm HYPRE was built with MPI.
+This checks packaging, not scientific validation.
+
+FDS links Homebrew's GCC and Open MPI dynamically. After `brew upgrade` moves
+either to a new major version, run `brew reinstall fds`.
 
 To move to a new FDS release: update the FDS `url`, its `sha256`, and the
 `GIT_DATE` passed to `make` (the release commit's date). Bump the HYPRE and
