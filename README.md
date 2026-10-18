@@ -63,6 +63,48 @@ These settings are for a single Mac. For multiple hosts, call `mpiexec` with
 the raw executable, `$(brew --prefix fds)/libexec/fds`, directly. Smokeview is
 separate.
 
+## Test your install
+
+Check that it installed:
+
+```sh
+brew list --versions fds   # prints the installed version
+which FDSG                 # /opt/homebrew/bin/FDSG
+```
+
+Run the formula's built-in test (a few seconds):
+
+```sh
+brew test fds
+```
+
+No example models are installed, so here is a small one to run yourself: a
+2 m box with a 0.4 × 0.4 m propane burner at 500 kW/m², split into two meshes,
+simulated for 5 seconds.
+
+```sh
+mkdir -p ~/fds-test && cd ~/fds-test
+cat > smoke.fds <<'EOF'
+&HEAD CHID='smoke', TITLE='FDS smoke test' /
+&MESH IJK=20,20,20, XB=0,2,0,2,0,2, MULT_ID='m' /
+&MULT ID='m', DX=1, I_UPPER=1 /
+&TIME T_END=5. /
+&REAC FUEL='PROPANE', SOOT_YIELD=0.01 /
+&SURF ID='BURNER', HRRPUA=500. /
+&VENT XB=0.8,1.2,0.8,1.2,0,0, SURF_ID='BURNER' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&DEVC ID='T', QUANTITY='TEMPERATURE', XYZ=1,1,1.5 /
+&TAIL /
+EOF
+FDSG smoke.fds -n 2
+tail -1 smoke_hrr.csv | cut -d, -f1-2
+```
+
+It should finish in about 10 seconds with `STOP: FDS completed successfully`, and the
+last line should show a heat release rate of about 80 kW at 5 s
+(500 kW/m² × 0.16 m²). Like the formula test, this checks that the install
+runs, not that results are accurate.
+
 ## Maintenance and checks
 
 ```sh
