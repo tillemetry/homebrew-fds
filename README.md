@@ -8,12 +8,20 @@ It builds NIST's FDS 6.11.1 release from source, with the HYPRE 3.0.0 and
 SUNDIALS 7.5.0 versions NIST pins for that release. All three downloads have
 SHA-256 checksums.
 
+> **Disclaimer.** This is an unofficial, community-maintained build. It is not
+> affiliated with or endorsed by NIST. It is provided "as is", without warranty
+> of any kind (see [LICENSE](LICENSE)). This build has been checked to compile
+> and run; it has not been validated for accuracy. Results used for design,
+> code compliance, or any life-safety decision must be checked by a qualified
+> fire protection engineer against NIST's official releases, its Verification
+> and Validation Guides, and the FDS User's Guide. You use this software at
+> your own risk.
+
 ## Install
 
-The Xcode Command Line Tools (`xcode-select --install`) and
-[Homebrew](https://brew.sh) must already be installed. The tap repository is private, so GitHub access
-must work first: run `gh auth login` (or set up an SSH key or HTTPS credential
-helper) on the machine before tapping.
+Install [Homebrew](https://brew.sh) first. Its installer also installs the
+Xcode Command Line Tools if they are missing. Apple distributes those only
+through its own channels, not GitHub.
 
 ```sh
 brew install tillemetry/fds/fds
@@ -28,8 +36,7 @@ brew install fds
 ```
 
 No `sudo` needed: Homebrew installs into folders you own and refuses to run as
-root. Only the one-time setup asks for an administrator password: installing
-the Xcode Command Line Tools and installing Homebrew itself.
+root. Only installing Homebrew itself asks for an administrator password.
 
 Homebrew installs GCC, Open MPI and CMake as dependencies, then compiles FDS
 and its solver libraries (a few minutes). No prebuilt bottle is provided yet.

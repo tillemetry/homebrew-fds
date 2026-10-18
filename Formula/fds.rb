@@ -118,6 +118,10 @@ class Fds < Formula
   def caveats
     <<~EOS
       This is an unofficial Apple Silicon package of NIST's FDS #{version} release.
+      Not endorsed by NIST; provided without warranty. Read the README before use:
+        https://github.com/tillemetry/homebrew-fds
+      Do not rely on results for life-safety decisions without independent
+      validation by a qualified engineer.
       Run: FDSG input.fds -n 4
       With -n above 1, FDSG uses local-machine MPI workarounds and defaults
       OMP_NUM_THREADS to 1 per process. Single-process runs use OpenMP's default.
